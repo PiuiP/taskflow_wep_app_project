@@ -5,7 +5,7 @@ from functools import lru_cache
 class Settings(BaseSettings):
     #PostgreSQL
     POSTGRES_HOST: str = "localhost"
-    POSTGRES_PORT: int = 5432
+    POSTGRES_PORT: int = 5433
     POSTGRES_DB: str = "taskflow"
     POSTGRES_DB_USER: str
     POSTGRES_DB_PASSWORD: str
