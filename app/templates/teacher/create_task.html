@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+
+{% block title %}Создание задания - TaskFlow{% endblock %}
+
+{% block content %}
+<h2 class="mb-4"><i class="bi bi-plus-circle"></i> Создание задания</h2>
+
+{% if error %}
+<div class="alert alert-danger">{{ error }}</div>
+{% endif %}
+
+<div class="card">
+    <div class="card-body">
+        <form method="POST" action="/teacher/tasks/create" enctype="multipart/form-data">
+            <div class="mb-3">
+                <label for="title" class="form-label">Название задания *</label>
+                <input type="text" class="form-control" id="title" name="title" required>
+            </div>
+
+            <div class="mb-3">
+                <label for="description" class="form-label">Описание / Условие *</label>
+                <textarea class="form-control" id="description" name="description" rows="5" required></textarea>
+            </div>
+
+            <div class="mb-3">
+                <label for="deadline" class="form-label">Дедлайн *</label>
+                <input type="datetime-local" class="form-control" id="deadline" name="deadline" required>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Исполнители *</label>
+                <div class="border rounded p-3" style="max-height: 300px; overflow-y: auto;">
+                    <div class="form-check mb-2 border-bottom pb-2">
+                        <input class="form-check-input" type="checkbox" id="select-all">
+                        <label class="form-check-label fw-bold" for="select-all">
+                            <i class="bi bi-check2-all"></i> Выбрать всех
+                        </label>
+                    </div>
+                    {% for student in students %}
+                    <div class="form-check">
+                        <input class="form-check-input student-checkbox" type="checkbox"
+                               name="student_ids" value="{{ student.id }}"
+                               id="student-{{ student.id }}">
+                        <label class="form-check-label" for="student-{{ student.id }}">
+                            {{ student.full_name }}
+                        </label>
+                    </div>
+                    {% else %}
+                    <div class="text-muted">В вашей группе нет студентов</div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label for="condition_file" class="form-label">Файл условия (опционально)</label>
+                <input type="file" class="form-control" id="condition_file" name="condition_file">
+                <div class="form-text">PDF, DOCX, TXT</div>
+            </div>
+
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-check-lg"></i> Создать
+                </button>
+                <a href="/teacher/dashboard" class="btn btn-secondary">
+                    <i class="bi bi-x-lg"></i> Отмена
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.getElementById('select-all').addEventListener('change', function() {
+    const checkboxes = document.querySelectorAll('.student-checkbox');
+    checkboxes.forEach(cb => cb.checked = this.checked);
+});
+</script>
+{% endblock %}

@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+
+{% block title %}Студенты группы - TaskFlow{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="bi bi-people"></i> Студенты группы {{ request.state.current_user.group_name }}</h2>
+    <a href="/teacher/dashboard" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left"></i> К дашборду
+    </a>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th>ФИО</th>
+                    <th>Логин</th>
+                    <th>Всего задач</th>
+                    <th>Выполнено</th>
+                    <th>На проверке</th>
+                    <th>Прогресс</th>
+                    <th>Средний балл</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in students_info %}
+                <tr>
+                    <td>
+                        <strong>{{ item.student.full_name }}</strong>
+                    </td>
+                    <td>
+                        <code>{{ item.student.username }}</code>
+                    </td>
+                    <td>{{ item.total }}</td>
+                    <td>
+                        <span class="badge bg-success">{{ item.verified }}</span>
+                    </td>
+                    <td>
+                        <span class="badge bg-warning text-dark">{{ item.submitted }}</span>
+                    </td>
+                    <td style="width: 20%;">
+                        <div class="progress">
+                            <div class="progress-bar 
+                                {% if item.progress >= 70 %}bg-success
+                                {% elif item.progress >= 40 %}bg-warning
+                                {% else %}bg-danger{% endif %}"
+                                role="progressbar"
+                                style="width: {{ item.progress }}%"
+                                aria-valuenow="{{ item.progress }}"
+                                aria-valuemin="0"
+                                aria-valuemax="100">
+                                {{ item.progress }}%
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        {% if item.avg_grade > 0 %}
+                            <span class="badge 
+                                {% if item.avg_grade >= 85 %}bg-success
+                                {% elif item.avg_grade >= 70 %}bg-primary
+                                {% elif item.avg_grade >= 50 %}bg-warning
+                                {% else %}bg-danger{% endif %}">
+                                {{ item.avg_grade }}%
+                            </span>
+                        {% else %}
+                            <span class="text-muted">—</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="7" class="text-center text-muted">
+                        В вашей группе пока нет студентов
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="mt-3 text-muted small">
+    <p class="mb-1"><strong>Легенда:</strong></p>
+    <span class="badge bg-success">Выполнено</span> — задачи со статусом "Принято" |
+    <span class="badge bg-warning text-dark">На проверке</span> — задачи, ожидающие проверки
+</div>
+{% endblock %}

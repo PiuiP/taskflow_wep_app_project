@@ -68,7 +68,7 @@ class File(Base):
     file_path: Mapped[str] = mapped_column(String(500), nullable=False)
     file_size: Mapped[int] = mapped_column(Integer, nullable=False)
     mime_type: Mapped[str] = mapped_column(String(100), nullable=False)
-    assignment_id: Mapped[int] = mapped_column(ForeignKey("assignments.id"))
+    assignment_id: Mapped[Optional[int]] = mapped_column(ForeignKey("assignments.id"))
     uploaded_by_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
     uploaded_at: Mapped[datetime] = mapped_column(server_default=func.now())
 

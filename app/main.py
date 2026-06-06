@@ -7,7 +7,7 @@ from app.database import init_db
 from app.dependencies import templates
 from app.middleware import AuthMiddleware
 from app.routes.auth import router as auth_router
-#from routes.task import tasks
+from app.routes.teacher import router as teacher_router
 #from routes.user import users
 
 @asynccontextmanager
@@ -30,7 +30,7 @@ app.mount("/static", StaticFiles(directory="app/static"), name="static")
 
 #сюда потом роуты
 app.include_router(auth_router)
-
+app.include_router(teacher_router)
 
 @app.get("/")
 def root():

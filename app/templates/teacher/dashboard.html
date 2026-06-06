@@ -1,0 +1,141 @@
+{% extends "base.html" %}
+
+{% block title %}Дашборд группы - TaskFlow{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="bi bi-speedometer2"></i> Дашборд группы {{ request.state.current_user.group_name }}</h2>
+    <a href="/teacher/tasks/create" class="btn btn-primary">
+        <i class="bi bi-plus-lg"></i> Создать задание
+    </a>
+</div>
+
+<!-- Статистика -->
+<div class="row mb-4">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Статусы заданий</h5>
+                <div style="position: relative; height: 300px;">
+                    <canvas id="statusChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Сводка</h5>
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item d-flex justify-content-between">
+                        <span>Всего заданий:</span>
+                        <strong>{{ total }}</strong>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between">
+                        <span><i class="bi bi-check-circle text-success"></i> Принято:</span>
+                        <strong>{{ stats.verified }}</strong>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between">
+                        <span><i class="bi bi-hourglass-split text-warning"></i> На проверке:</span>
+                        <strong>{{ stats.submitted }}</strong>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between">
+                        <span><i class="bi bi-arrow-repeat text-info"></i> На доработке:</span>
+                        <strong>{{ stats.rejected }}</strong>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between">
+                        <span><i class="bi bi-circle text-secondary"></i> Не начато:</span>
+                        <strong>{{ stats.pending }}</strong>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Таблица успеваемости -->
+<div class="card">
+    <div class="card-body">
+        <h5 class="card-title">Успеваемость студентов</h5>
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th>ФИО студента</th>
+                    <th>Прогресс</th>
+                    <th>Выполнено</th>
+                    <th>Средний балл</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in students_progress %}
+                <tr>
+                    <td>
+                        <a href="/teacher/student/{{ item.student.id }}" class="text-decoration-none">
+                            {{ item.student.full_name }}
+                        </a>
+                    </td>
+                    <td style="width: 40%;">
+                        <div class="progress">
+                            <div class="progress-bar 
+                                {% if item.progress >= 70 %}bg-success
+                                {% elif item.progress >= 40 %}bg-warning
+                                {% else %}bg-danger{% endif %}"
+                                role="progressbar"
+                                style="width: {{ item.progress }}%"
+                                aria-valuenow="{{ item.progress }}"
+                                aria-valuemin="0"
+                                aria-valuemax="100">
+                                {{ item.progress }}%
+                            </div>
+                        </div>
+                    </td>
+                    <td>{{ item.verified }} / {{ item.total }}</td>
+                    <td>
+                        {% if item.avg_grade > 0 %}
+                            <span class="badge 
+                                {% if item.avg_grade >= 85 %}bg-success
+                                {% elif item.avg_grade >= 70 %}bg-primary
+                                {% elif item.avg_grade >= 50 %}bg-warning
+                                {% else %}bg-danger{% endif %}">
+                                {{ item.avg_grade }}%
+                            </span>
+                        {% else %}
+                            <span class="text-muted">—</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="4" class="text-center text-muted">В группе пока нет студентов</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+const ctx = document.getElementById('statusChart').getContext('2d');
+new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+        labels: ['Принято', 'На проверке', 'На доработке', 'Не начато'],
+        datasets: [{
+            data: [{{ stats.verified }}, {{ stats.submitted }}, {{ stats.rejected }}, {{ stats.pending }}],
+            backgroundColor: ['#198754', '#ffc107', '#0dcaf0', '#6c757d']
+        }]
+    },
+    options: {
+    responsive: true,
+    plugins: {
+        legend: {
+            position: 'bottom'
+        }
+    }
+}
+});
+</script>
+{% endblock %}
