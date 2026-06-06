@@ -1,12 +1,12 @@
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
-from fastapi.templating import Jinja2Templates
 from fastapi.responses import RedirectResponse
 from contextlib import asynccontextmanager
 
 from app.database import init_db
 from app.dependencies import templates
-#from routes.auth import auth
+from app.middleware import AuthMiddleware
+from app.routes.auth import router as auth_router
 #from routes.task import tasks
 #from routes.user import users
 
@@ -23,10 +23,14 @@ app = FastAPI(
     lifespan=lifespan
 )
 
+app.add_middleware(AuthMiddleware)
+
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
 
 
 #сюда потом роуты
+app.include_router(auth_router)
+
 
 @app.get("/")
 def root():

@@ -14,7 +14,7 @@ router = APIRouter()
 
 @router.get("/login")
 def login_page(request: Request):
-    return templates.TemplateResponse("login.html", {"request": request})
+    return templates.TemplateResponse(request, "login.html")
 
 @router.post("/login")
 def login_submit(request: Request,
@@ -26,14 +26,16 @@ def login_submit(request: Request,
 
     if not user:
         return templates.TemplateResponse(
+            request,
             "login.html",
-            {"request": request, "error": "Пользователь не найден"}
+            {"error": "Пользователь не найден"}
         )
     
     if not check_password(password, user.password_hash):
         return templates.TemplateResponse(
+            request,
             "login.html",
-            {"request": request, "error": "Неверный пароль"}
+            {"error": "Неверный пароль"}
         )
     token = create_JWT(user.username, user.role)
 
@@ -64,7 +66,7 @@ def login_submit(request: Request,
 
 @router.get("/register")
 def registration_page(request: Request):
-    return templates.TemplateResponse("register.html", {"request": request})
+    return templates.TemplateResponse(request, "register.html")
 
 #регистрациия только для учеников, учителем становятся через администратора
 @router.post("/register")
@@ -80,18 +82,21 @@ def registration_submit(request: Request,
     group = db.query(User).filter(User.group_name == group_name).first() #должен быть хотябы одиин юзер с такой же группой (учитель первый, потом добавляются ученики)
     if user:
         return templates.TemplateResponse(
+            request,
             "register.html",
-            {"request": request, "error": "Пользователь уже существует"}
+            {"error": "Пользователь уже существует"}
         )
     if password != password_repeat:
         return templates.TemplateResponse(
+            request,
             "register.html",
-            {"request": request, "error": "Пароли не совпадают"}
+            {"error": "Пароли не совпадают"}
         )
     if not group:
         return templates.TemplateResponse(
+            request,
             "register.html",
-            {"request": request, "error": "Указанной группы не существует"}
+            {"error": "Указанной группы не существует"}
         )
     
     new_user = User(
@@ -112,4 +117,3 @@ def logout(request: Request):
     response = RedirectResponse(url="/login", status_code=303)
     response.delete_cookie(key="access_token")
     return response
-

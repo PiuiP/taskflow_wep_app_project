@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+
+{% block title %}Регистрация - TaskFlow{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center mt-5">
+    <div class="col-md-6 col-lg-5">
+        <div class="card shadow">
+            <div class="card-body p-4">
+                <h2 class="text-center mb-4">
+                    <i class="bi bi-person-plus"></i> Регистрация студента
+                </h2>
+                
+                {% if error %}
+                <div class="alert alert-danger" role="alert">
+                    {{ error }}
+                </div>
+                {% endif %}
+
+                <form method="POST" action="/register">
+                    <div class="mb-3">
+                        <label for="username" class="form-label">Логин</label>
+                        <input type="text" class="form-control" id="username" name="username" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="fullname" class="form-label">ФИО</label>
+                        <input type="text" class="form-control" id="fullname" name="fullname" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="group_name" class="form-label">Группа</label>
+                        <input type="text" class="form-control" id="group_name" name="group_name" placeholder="Например: ИВТ-41" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="password" class="form-label">Пароль</label>
+                        <input type="password" class="form-control" id="password" name="password" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="password_repeat" class="form-label">Повторите пароль</label>
+                        <input type="password" class="form-control" id="password_repeat" name="password_repeat" required>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-success w-100">
+                        <i class="bi bi-person-plus"></i> Зарегистрироваться
+                    </button>
+                </form>
+                
+                <div class="text-center mt-3">
+                    <small class="text-muted">
+                        Уже есть аккаунт? <a href="/login">Войти</a>
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
