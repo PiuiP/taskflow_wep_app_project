@@ -24,7 +24,7 @@ if not teacher:
     db.add(User(
         username="teacher",
         password_hash=hash_password("teacher123"),
-        full_name="Кружалов Алексей Сергеевич",
+        full_name="Вы НаСтранице Учителя",
         role="teacher",
         group_name="ИВТ-41"
     ))

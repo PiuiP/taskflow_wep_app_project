@@ -11,6 +11,7 @@ from app.models import User, Task, Assignment, Comment, File as FileModel
 from app.auth import require_role
 from app.dependencies import templates
 from app.config import settings
+from app.utils import validate_file_type
 
 router = APIRouter(prefix="/student", tags=["student"])
 
@@ -76,11 +77,10 @@ def task_detail(
     
     #айлы условия задания (привязаны к задаче через uploaded_by_id преподавателя)
     condition_files = db.query(FileModel).filter(
-        FileModel.uploaded_by_id == task.author_id,
+        FileModel.task_id == task.id,
         FileModel.assignment_id.is_(None)
     ).all()
-    # На самом деле файлы условия привязаны к заданию через автора — но у нас в модели File
-    # нет прямой связи с Task. Для простоты: файлы без assignment_id, загруженные автором задачи.
+
     
     #файлы студента
     student_files = db.query(FileModel).filter(
@@ -138,6 +138,7 @@ async def submit_task(
     if assignment.status == 'verified':
         raise HTTPException(status_code=400, detail="Задание уже проверено")
     
+    validate_file_type(solution_file)
     os.makedirs("uploads", exist_ok=True)
     file_ext = solution_file.filename.split(".")[-1]
     stored_name = f"{uuid.uuid4()}.{file_ext}"

@@ -11,6 +11,7 @@ from app.database import get_db
 from app.models import User, Task, Assignment, Comment, File as FileModel
 from app.auth import require_role
 from app.dependencies import templates
+from app.utils import validate_file_type
 
 router = APIRouter(prefix="/teacher", tags=["teacher"])
 
@@ -295,6 +296,7 @@ async def create_task_submit(
     
     #сохраняем файл условия если есть
     if condition_file and condition_file.filename:
+        validate_file_type(condition_file)
         os.makedirs("uploads", exist_ok=True)
         file_ext = condition_file.filename.split(".")[-1]
         stored_name = f"{uuid.uuid4()}.{file_ext}"
@@ -310,6 +312,7 @@ async def create_task_submit(
             file_path=file_path,
             file_size=len(content),
             mime_type=condition_file.content_type or "application/octet-stream",
+            task_id=task.id,
             assignment_id=None,
             uploaded_by_id=current_user.id
         )
@@ -410,7 +413,7 @@ def check_assignment(
     task_id: int,
     assignment_id: int = Form(...),
     grade: int = Form(...),
-    comment: str = Form(...),
+    comment: str = Form(default=""),
     action: str = Form(...),
     db: Session = Depends(get_db),
     current_user: User = Depends(require_role(["teacher"]))
@@ -432,12 +435,14 @@ def check_assignment(
     assignment.status = action
     assignment.grade = grade
     
-    new_comment = Comment(
-        content=comment,
-        assignment_id=assignment.id,
-        author_id=current_user.id
-    )
-    db.add(new_comment)
+    if comment.strip():
+        new_comment = Comment(
+            content=comment,
+            assignment_id=assignment.id,
+            author_id=current_user.id
+        )
+        db.add(new_comment)
+    
     db.commit()
     
     return RedirectResponse(url=f"/teacher/task/{task_id}", status_code=303)
