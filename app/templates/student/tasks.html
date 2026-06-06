@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+
+{% block title %}Мои задачи - TaskFlow{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="bi bi-list-task"></i> Мои задачи</h2>
+</div>
+
+<!-- Фильтры -->
+<div class="mb-3">
+    <div class="btn-group" role="group">
+        <a href="/student/tasks" class="btn btn-outline-primary {% if not status_filter %}active{% endif %}">Все</a>
+        <a href="/student/tasks?status_filter=pending" class="btn btn-outline-secondary {% if status_filter == 'pending' %}active{% endif %}">Не начато</a>
+        <a href="/student/tasks?status_filter=submitted" class="btn btn-outline-warning {% if status_filter == 'submitted' %}active{% endif %}">На проверке</a>
+        <a href="/student/tasks?status_filter=verified" class="btn btn-outline-success {% if status_filter == 'verified' %}active{% endif %}">Принято</a>
+        <a href="/student/tasks?status_filter=rejected" class="btn btn-outline-info {% if status_filter == 'rejected' %}active{% endif %}">На доработке</a>
+    </div>
+</div>
+
+<!-- Карточки задач -->
+<div class="row">
+    {% for item in tasks_info %}
+    <div class="col-md-6 mb-3">
+        <div class="card {% if item.is_overdue %}border-danger{% endif %} h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <h5 class="card-title mb-0">{{ item.task.title }}</h5>
+                    {% if item.assignment.status == 'verified' %}
+                        <span class="badge bg-success">Принято</span>
+                    {% elif item.assignment.status == 'submitted' %}
+                        <span class="badge bg-warning text-dark">На проверке</span>
+                    {% elif item.assignment.status == 'rejected' %}
+                        <span class="badge bg-info">На доработке</span>
+                    {% else %}
+                        <span class="badge bg-secondary">Не начато</span>
+                    {% endif %}
+                </div>
+                
+                <p class="card-text text-muted small mb-2">
+                    <i class="bi bi-calendar-event"></i>
+                    Дедлайн: {{ item.task.deadline.strftime('%d.%m.%Y %H:%M') }}
+                    {% if item.is_overdue %}
+                        <span class="badge bg-danger ms-2">
+                            <i class="bi bi-exclamation-triangle"></i> Просрочено
+                        </span>
+                    {% endif %}
+                </p>
+                
+                <p class="card-text small" style="max-height: 60px; overflow: hidden;">
+                    {{ item.task.description[:150] }}{% if item.task.description|length > 150 %}...{% endif %}
+                </p>
+                
+                {% if item.assignment.grade is not none %}
+                <p class="card-text">
+                    <strong>Оценка:</strong>
+                    <span class="badge bg-primary fs-6">{{ item.assignment.grade }}/100</span>
+                </p>
+                {% endif %}
+            </div>
+            <div class="card-footer bg-transparent">
+                <a href="/student/task/{{ item.assignment.id }}" class="btn btn-primary btn-sm w-100">
+                    <i class="bi bi-eye"></i> Подробнее
+                </a>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="col-12">
+        <div class="alert alert-info text-center">
+            <i class="bi bi-info-circle"></i> У вас пока нет назначенных задач
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

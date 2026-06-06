@@ -8,7 +8,9 @@ from app.dependencies import templates
 from app.middleware import AuthMiddleware
 from app.routes.auth import router as auth_router
 from app.routes.teacher import router as teacher_router
-#from routes.user import users
+from app.routes.student import router as student_router
+from app.routes.files import router as files_router
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -31,6 +33,8 @@ app.mount("/static", StaticFiles(directory="app/static"), name="static")
 #сюда потом роуты
 app.include_router(auth_router)
 app.include_router(teacher_router)
+app.include_router(student_router)
+app.include_router(files_router)
 
 @app.get("/")
 def root():

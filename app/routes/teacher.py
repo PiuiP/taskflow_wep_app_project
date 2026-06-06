@@ -121,6 +121,73 @@ def students_list(
         {"students_info": students_info}
     )
 
+# ========= УСПЕВАЕМОСТЬ КОНКРЕТНОГО СТУДЕНТА =========
+
+@router.get("/student/{student_id}")
+def student_progress(
+    request: Request,
+    student_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_role(["teacher"]))
+):
+    # Получаем студента
+    student = db.query(User).filter(
+        User.id == student_id,
+        User.role == 'student'
+    ).first()
+    
+    if not student:
+        raise HTTPException(status_code=404, detail="Студент не найден")
+    
+    # Проверяем, что студент из группы преподавателя
+    if student.group_name != current_user.group_name:
+        raise HTTPException(status_code=403, detail="Доступ запрещён")
+    
+    # Получаем все назначения студента
+    assignments = db.query(Assignment).filter(
+        Assignment.student_id == student.id
+    ).all()
+    
+    # Статистика по статусам
+    stats = {'pending': 0, 'submitted': 0, 'verified': 0, 'rejected': 0}
+    for assignment in assignments:
+        if assignment.status in stats:
+            stats[assignment.status] += 1
+    
+    total = len(assignments)
+    verified_count = stats['verified']
+    progress = (verified_count / total * 100) if total > 0 else 0
+    
+    # Средний балл
+    grades = [a.grade for a in assignments if a.grade is not None and a.status == 'verified']
+    avg_grade = sum(grades) / len(grades) if grades else 0
+    
+    # Список задач с оценками
+    tasks_info = []
+    for assignment in assignments:
+        task = db.query(Task).filter(Task.id == assignment.task_id).first()
+        if task:
+            tasks_info.append({
+                'task': task,
+                'assignment': assignment
+            })
+    
+    # Сортируем по дедлайну (новые сверху)
+    tasks_info.sort(key=lambda x: x['task'].deadline, reverse=True)
+    
+    return templates.TemplateResponse(
+        request,
+        "teacher/student_progress.html",
+        {
+            "student": student,
+            "stats": stats,
+            "total": total,
+            "progress": round(progress, 1),
+            "avg_grade": round(avg_grade, 1),
+            "tasks_info": tasks_info
+        }
+    )
+
 # ========= СПИСОК ЗАДАНИЙ ПРЕПОДАВАТЕЛЯ =========
 
 @router.get("/tasks")

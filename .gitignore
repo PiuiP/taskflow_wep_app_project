@@ -6,3 +6,5 @@ venv/
 env/
 .env
 .venv
+uploads/*
+!uploads/.gitkeep

@@ -1,0 +1,163 @@
+{% extends "base.html" %}
+
+{% block title %}Успеваемость: {{ student.full_name }} - TaskFlow{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2><i class="bi bi-person-badge"></i> {{ student.full_name }}</h2>
+        <p class="text-muted mb-0">
+            Группа: <strong>{{ student.group_name }}</strong> |
+            Логин: <code>{{ student.username }}</code>
+        </p>
+    </div>
+    <a href="/teacher/dashboard" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left"></i> К дашборду
+    </a>
+</div>
+
+<!-- Статистика -->
+<div class="row mb-4">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Статусы заданий</h5>
+                <div style="position: relative; height: 300px;">
+                    <canvas id="statusChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card mb-3">
+            <div class="card-body">
+                <h5 class="card-title">Сводка</h5>
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item d-flex justify-content-between">
+                        <span>Всего заданий:</span>
+                        <strong>{{ total }}</strong>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between">
+                        <span><i class="bi bi-check-circle text-success"></i> Принято:</span>
+                        <strong>{{ stats.verified }}</strong>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between">
+                        <span><i class="bi bi-hourglass-split text-warning"></i> На проверке:</span>
+                        <strong>{{ stats.submitted }}</strong>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between">
+                        <span><i class="bi bi-arrow-repeat text-info"></i> На доработке:</span>
+                        <strong>{{ stats.rejected }}</strong>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between">
+                        <span><i class="bi bi-circle text-secondary"></i> Не начато:</span>
+                        <strong>{{ stats.pending }}</strong>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-body text-center">
+                <h6 class="text-muted mb-2">Средний балл</h6>
+                <h1 class="display-4 
+                    {% if avg_grade >= 85 %}text-success
+                    {% elif avg_grade >= 70 %}text-primary
+                    {% elif avg_grade >= 50 %}text-warning
+                    {% else %}text-danger{% endif %}">
+                    {% if avg_grade > 0 %}
+                        {{ avg_grade }}%
+                    {% else %}
+                        —
+                    {% endif %}
+                </h1>
+                <div class="progress mt-3" style="height: 25px;">
+                    <div class="progress-bar 
+                        {% if progress >= 70 %}bg-success
+                        {% elif progress >= 40 %}bg-warning
+                        {% else %}bg-danger{% endif %}"
+                        role="progressbar"
+                        style="width: {{ progress }}%">
+                        {{ progress }}% выполнено
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Список задач -->
+<div class="card">
+    <div class="card-body">
+        <h5 class="card-title">История заданий</h5>
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th>Название</th>
+                    <th>Дедлайн</th>
+                    <th>Статус</th>
+                    <th>Оценка</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in tasks_info %}
+                <tr>
+                    <td>
+                        <a href="/teacher/task/{{ item.task.id }}" class="text-decoration-none">
+                            {{ item.task.title }}
+                        </a>
+                    </td>
+                    <td>{{ item.task.deadline.strftime('%d.%m.%Y %H:%M') }}</td>
+                    <td>
+                        {% if item.assignment.status == 'verified' %}
+                            <span class="badge bg-success">Принято</span>
+                        {% elif item.assignment.status == 'submitted' %}
+                            <span class="badge bg-warning text-dark">На проверке</span>
+                        {% elif item.assignment.status == 'rejected' %}
+                            <span class="badge bg-info">На доработке</span>
+                        {% else %}
+                            <span class="badge bg-secondary">Не начато</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if item.assignment.grade is not none %}
+                            <strong>{{ item.assignment.grade }}</strong>/100
+                        {% else %}
+                            <span class="text-muted">—</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="4" class="text-center text-muted">У студента пока нет заданий</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+const ctx = document.getElementById('statusChart').getContext('2d');
+new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+        labels: ['Принято', 'На проверке', 'На доработке', 'Не начато'],
+        datasets: [{
+            data: [{{ stats.verified }}, {{ stats.submitted }}, {{ stats.rejected }}, {{ stats.pending }}],
+            backgroundColor: ['#198754', '#ffc107', '#0dcaf0', '#6c757d']
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: {
+            legend: {
+                position: 'bottom'
+            }
+        }
+    }
+});
+</script>
+{% endblock %}

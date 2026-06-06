@@ -1,0 +1,136 @@
+{% extends "base.html" %}
+
+{% block title %}{{ task.title }} - TaskFlow{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2>
+        <i class="bi bi-file-earmark-text"></i> {{ task.title }}
+        {% if is_overdue %}
+            <span class="badge bg-danger fs-6">Просрочено</span>
+        {% endif %}
+    </h2>
+    <a href="/student/tasks" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left"></i> К задачам
+    </a>
+</div>
+
+<!-- Информация о задании -->
+<div class="card mb-4">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">Условие задания</h5>
+        <span class="badge 
+            {% if assignment.status == 'verified' %}bg-success
+            {% elif assignment.status == 'submitted' %}bg-warning text-dark
+            {% elif assignment.status == 'rejected' %}bg-info
+            {% else %}bg-secondary{% endif %} fs-6">
+            {% if assignment.status == 'verified' %}Принято
+            {% elif assignment.status == 'submitted' %}На проверке
+            {% elif assignment.status == 'rejected' %}На доработке
+            {% else %}Не начато{% endif %}
+        </span>
+    </div>
+    <div class="card-body">
+        <p style="white-space: pre-wrap;">{{ task.description }}</p>
+        <p class="text-muted mb-0">
+            <i class="bi bi-calendar-event"></i> Дедлайн: <strong>{{ task.deadline.strftime('%d.%m.%Y в %H:%M') }}</strong>
+        </p>
+    </div>
+    
+    {% if condition_files %}
+    <div class="card-footer">
+        <strong><i class="bi bi-paperclip"></i> Файлы условия:</strong>
+        <ul class="list-unstyled mb-0 mt-2">
+            {% for file in condition_files %}
+            <li>
+                <a href="/download/{{ file.id }}" class="text-decoration-none">
+                    <i class="bi bi-file-earmark"></i> {{ file.original_name }}
+                </a>
+                <span class="text-muted small">({{ (file.file_size / 1024)|round(1) }} КБ)</span>
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Загрузка решения -->
+{% if assignment.status in ['pending', 'rejected'] %}
+<div class="card mb-4 border-primary">
+    <div class="card-header bg-primary text-white">
+        <h5 class="mb-0"><i class="bi bi-upload"></i> Загрузить решение</h5>
+    </div>
+    <div class="card-body">
+        <form method="POST" action="/student/task/{{ assignment.id }}/submit" enctype="multipart/form-data">
+            <div class="mb-3">
+                <label for="solution_file" class="form-label">Файл с решением</label>
+                <input type="file" class="form-control" id="solution_file" name="solution_file" required>
+            </div>
+            <button type="submit" class="btn btn-success">
+                <i class="bi bi-send"></i> Отправить на проверку
+            </button>
+        </form>
+    </div>
+</div>
+{% elif assignment.status == 'submitted' %}
+<div class="alert alert-warning">
+    <i class="bi bi-hourglass-split"></i> Ваше решение отправлено на проверку. Ожидайте оценки преподавателя.
+</div>
+{% endif %}
+
+<!-- Файлы студента -->
+{% if student_files %}
+<div class="card mb-4">
+    <div class="card-header">
+        <h5 class="mb-0"><i class="bi bi-folder"></i> Ваши загруженные файлы</h5>
+    </div>
+    <ul class="list-group list-group-flush">
+        {% for file in student_files %}
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+            <a href="/download/{{ file.id }}" class="text-decoration-none">
+                <i class="bi bi-file-earmark"></i> {{ file.original_name }}
+            </a>
+            <span class="text-muted small">
+                {{ file.uploaded_at.strftime('%d.%m.%Y %H:%M') }} |
+                {{ (file.file_size / 1024)|round(1) }} КБ
+            </span>
+        </li>
+        {% endfor %}
+    </ul>
+</div>
+{% endif %}
+
+<!-- Оценка -->
+{% if assignment.grade is not none %}
+<div class="card mb-4 border-success">
+    <div class="card-header bg-success text-white">
+        <h5 class="mb-0"><i class="bi bi-award"></i> Оценка</h5>
+    </div>
+    <div class="card-body text-center">
+        <h1 class="display-3 text-success">{{ assignment.grade }}<small class="text-muted">/100</small></h1>
+    </div>
+</div>
+{% endif %}
+
+<!-- Комментарии -->
+<div class="card mb-4">
+    <div class="card-header">
+        <h5 class="mb-0"><i class="bi bi-chat-dots"></i> Комментарии преподавателя</h5>
+    </div>
+    <div class="card-body">
+        {% if comments_info %}
+            {% for item in comments_info %}
+            <div class="border-start border-3 border-primary ps-3 mb-3">
+                <div class="d-flex justify-content-between">
+                    <strong>{{ item.author.full_name }}</strong>
+                    <small class="text-muted">{{ item.comment.created.strftime('%d.%m.%Y %H:%M') }}</small>
+                </div>
+                <p class="mb-0" style="white-space: pre-wrap;">{{ item.comment.content }}</p>
+            </div>
+            {% endfor %}
+        {% else %}
+            <p class="text-muted mb-0">Комментариев пока нет</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
