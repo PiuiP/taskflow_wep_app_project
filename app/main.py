@@ -10,7 +10,7 @@ from app.routes.auth import router as auth_router
 from app.routes.teacher import router as teacher_router
 from app.routes.student import router as student_router
 from app.routes.files import router as files_router
-
+from app.routes.admin import router as admin_router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -35,6 +35,7 @@ app.include_router(auth_router)
 app.include_router(teacher_router)
 app.include_router(student_router)
 app.include_router(files_router)
+app.include_router(admin_router)
 
 @app.get("/")
 def root():
