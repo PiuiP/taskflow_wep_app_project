@@ -4,8 +4,7 @@ from sqlalchemy import ForeignKey, Integer, Text, String, DateTime
 from typing import Optional, List
 from datetime import datetime
 
-class Base(DeclarativeBase):
-    pass
+from app.database import Base
 
 class User(Base):
     __tablename__ = "users"
@@ -15,7 +14,7 @@ class User(Base):
     password_hash: Mapped[str] = mapped_column(String(255), nullable=False)
     role: Mapped[str] = mapped_column(String(20), nullable=False) #student/teacher/admin
     full_name: Mapped[str] = mapped_column(String(255), nullable=False)
-    group_name: Mapped[str] = mapped_column(String(100))
+    group_name: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
     created: Mapped[datetime] = mapped_column(server_default=func.now())
 
     assignments: Mapped[List["Assignment"]] = relationship(back_populates="student") #все назначения студента
@@ -27,7 +26,7 @@ class Task(Base):
     title: Mapped[str] = mapped_column(String(255), nullable=False)
     description: Mapped[Optional[str]] = mapped_column(Text)
     deadline: Mapped[datetime] = mapped_column(DateTime, nullable=False)
-    author: Mapped[int] = mapped_column(ForeignKey("users.id"))
+    author_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
     created: Mapped[datetime] = mapped_column(server_default=func.now())
     updated: Mapped[datetime] = mapped_column(server_default=func.now())
 

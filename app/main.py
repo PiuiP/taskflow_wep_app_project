@@ -4,7 +4,7 @@ from fastapi.templating import Jinja2Templates
 from fastapi.responses import RedirectResponse
 from contextlib import asynccontextmanager
 
-from database import init_db
+from app.database import init_db
 from app.dependencies import templates
 #from routes.auth import auth
 #from routes.task import tasks
@@ -23,7 +23,7 @@ app = FastAPI(
     lifespan=lifespan
 )
 
-app.mount("/static", StaticFiles(directory="static"), name="static")
+app.mount("/static", StaticFiles(directory="app/static"), name="static")
 
 
 #сюда потом роуты

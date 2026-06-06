@@ -6,8 +6,8 @@ from datetime import datetime, timedelta, timezone
 from sqlalchemy.orm import Session
 
 from app.config import settings
-from models import User
-from database import get_db
+from app.models import User
+from app.database import get_db
 
 pwd_context = CryptContext(
         schemes=["bcrypt"],
